@@ -33,11 +33,9 @@
 	<link rel="stylesheet" href="css/home_products.css">
 	<link rel="stylesheet" href="css/pagination_phantrang.css">
 	<link rel="stylesheet" href="css/footer.css">
+
 	<!-- js -->
-	<script src="data/products.js"></script>
-	<script src="js/classes.js"></script>
 	<script src="js/dungchung.js"></script>
-	<script src="js/trangchu.js"></script>
 
 </head>
 
@@ -104,7 +102,10 @@
 		</div>
 
 		<!-- Div hiển thị khung sp hot, khuyến mãi, mới ra mắt ... -->
-		<div class="contain-khungSanPham" ></div>
+		<div class="contain-khungSanPham" >
+			<div id="list-giam-gia-lon-products" class="product-list"></div>
+			<div id="list-san-pham-moi-products" class="product-list"></div>
+		</div>
 
 	</section> <!-- End Section -->
 
@@ -115,6 +116,9 @@
 	<div class="footer"><script>addFooter();</script></div>
 
 	<i class="fa fa-arrow-up" id="goto-top-page" onclick="gotoTop()"></i>
+
+	<!-- js -->
+	<script src="js/trangchu.js"></script>
 </body>
 
 </html>

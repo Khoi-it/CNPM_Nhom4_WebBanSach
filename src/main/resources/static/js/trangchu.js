@@ -1,92 +1,91 @@
+let list_products = [];
+
 window.onload = function () {
-	khoiTao();
+	fetch('/api/products')
+		.then(response => response.json())
+		.then(data => {
+			list_products = data;
 
-	// Thêm hình vào banner
-	addBanner("img/banners/banner0.png", "img/banners/banner0.png");
-	var numBanner = 9; // Số lượng hình banner
-	for (var i = 1; i <= numBanner; i++) {
-		var linkimg = "img/banners/banner" + i + ".png";
-		addBanner(linkimg, linkimg);
-	}
+			// autocomplete sau khi đã có list_products
+			autocomplete(document.getElementById('search-box'), list_products);
 
-	// Khởi động thư viện hỗ trợ banner - chỉ chạy khi đã tạo hình trong banner
-	var owl = $('.owl-carousel');
-	owl.owlCarousel({
-		items: 1.5,
-		margin: 100,
-		center: true,
-		loop: true,
-		smartSpeed: 450,
-		autoplay: true,
-		autoplayTimeout: 3500
-	});
+			khoiTao();
 
-	// autocomplete cho khung tim kiem
-	autocomplete(document.getElementById('search-box'), list_products);
+			// Thêm hình vào banner
+			addBanner("img/banners/banner0.png", "img/banners/banner0.png");
+			var numBanner = 9;
+			for (var i = 1; i <= numBanner; i++) {
+				var linkimg = "img/banners/banner" + i + ".png";
+				addBanner(linkimg, linkimg);
+			}
 
+			var owl = $('.owl-carousel');
+			owl.owlCarousel({
+				items: 1.5,
+				margin: 100,
+				center: true,
+				loop: true,
+				smartSpeed: 450,
+				autoplay: true,
+				autoplayTimeout: 3500
+			});
 
-	// Thêm sản phẩm vào trang
-	var sanPhamPhanTich
-	var sanPhamPhanTrang;
+			// Thêm sản phẩm vào trang
+			var sanPhamPhanTich;
+			var sanPhamPhanTrang;
 
-	var filters = getFilterFromURL();
-	if (filters.length) { // có filter
-		sanPhamPhanTich = phanTich_URL(filters, true);
-		sanPhamPhanTrang = tinhToanPhanTrang(sanPhamPhanTich, filtersFromUrl.page || 1);
-		if (!sanPhamPhanTrang.length) alertNotHaveProduct(false);
-		else addProductsFrom(sanPhamPhanTrang);
+			var filters = getFilterFromURL();
+			if (filters.length) {
+				sanPhamPhanTich = phanTich_URL(filters, true);
+				sanPhamPhanTrang = tinhToanPhanTrang(sanPhamPhanTich, filtersFromUrl.page || 1);
+				if (!sanPhamPhanTrang.length) alertNotHaveProduct(false);
+				else addProductsFrom(sanPhamPhanTrang);
 
-		// hiển thị list sản phẩm
-		document.getElementsByClassName('contain-products')[0].style.display = '';
+				document.getElementsByClassName('contain-products')[0].style.display = '';
+			} else {
+				var soLuong = (window.innerWidth < 1200 ? 4 : 5);
 
-	} else { // ko có filter : trang chính mặc định sẽ hiển thị các sp hot, ...
-		var soLuong = (window.innerWidth < 1200 ? 4 : 5); // màn hình nhỏ thì hiển thị 4 sp, to thì hiển thị 5
+				var yellow_red = ['#ff9c00', '#ec1f1f'];
+				var blue = ['#42bcf4', '#004c70'];
+				var green = ['#5de272', '#007012'];
 
-		// Các màu
-		var yellow_red = ['#ff9c00', '#ec1f1f'];
-		var blue = ['#42bcf4', '#004c70'];
-		var green = ['#5de272', '#007012'];
+				var div = document.getElementsByClassName('contain-khungSanPham')[0];
+				addKhungSanPham('NỔI BẬT NHẤT', yellow_red, ['star=3', 'sort=rateCount-decrease'], soLuong, div);
+				addKhungSanPham('SẢN PHẨM MỚI', blue, ['promo=moiramat', 'sort=rateCount-decrease'], soLuong, div);
+				addKhungSanPham('GIÁ SỐC ONLINE', green, ['promo=giareonline', 'sort=rateCount-decrease'], soLuong, div);
+				addKhungSanPham('GIẢM GIÁ LỚN', yellow_red, ['promo=giamgia'], soLuong, div);
+				addKhungSanPham('GIÁ RẺ CHO MỌI NHÀ', green, ['price=0-3000000', 'sort=price'], soLuong, div);
+			}
 
-		// Thêm các khung sản phẩm
-		var div = document.getElementsByClassName('contain-khungSanPham')[0];
-		addKhungSanPham('NỔI BẬT NHẤT', yellow_red, ['star=3', 'sort=rateCount-decrease'], soLuong, div);
-		addKhungSanPham('SẢN PHẨM MỚI', blue, ['promo=moiramat', 'sort=rateCount-decrease'], soLuong, div);
-		addKhungSanPham('GIÁ SỐC ONLINE', green, ['promo=giareonline', 'sort=rateCount-decrease'], soLuong, div);
-		addKhungSanPham('GIẢM GIÁ LỚN', yellow_red, ['promo=giamgia'], soLuong, div);
-		addKhungSanPham('GIÁ RẺ CHO MỌI NHÀ', green, ['price=0-3000000', 'sort=price'], soLuong, div);
-	}
+			// Các filter
+			addPricesRange(0, 50000);
+			addPricesRange(50000, 100000);
+			addPricesRange(100000, 200000);
+			addPricesRange(200000, 500000);
+			addPricesRange(500000, 1000000);
 
-	// Thêm chọn mức giá
-	addPricesRange(0, 50000);
-	addPricesRange(50000, 100000);
-	addPricesRange(100000, 200000);
-	addPricesRange(200000, 500000);
-	addPricesRange(500000, 1000000);
+			addPromotion('giamgia');
+			addPromotion('moiramat');
+			addPromotion('giareonline');
 
-	// Thêm chọn khuyến mãi
-	addPromotion('giamgia');
-	// addPromotion('tragop');
-	addPromotion('moiramat');
-	addPromotion('giareonline');
+			addStarFilter(3);
+			addStarFilter(4);
+			addStarFilter(5);
 
-	// Thêm chọn số sao
-	addStarFilter(3);
-	addStarFilter(4);
-	addStarFilter(5);
+			addSortFilter('ascending', 'price', 'Giá tăng dần');
+			addSortFilter('decrease', 'price', 'Giá giảm dần');
+			addSortFilter('ascending', 'star', 'Sao tăng dần');
+			addSortFilter('decrease', 'star', 'Sao giảm dần');
+			addSortFilter('ascending', 'rateCount', 'Đánh giá tăng dần');
+			addSortFilter('decrease', 'rateCount', 'Đánh giá giảm dần');
+			addSortFilter('ascending', 'name', 'Tên A-Z');
+			addSortFilter('decrease', 'name', 'Tên Z-A');
 
-	// Thêm chọn sắp xếp
-	addSortFilter('ascending', 'price', 'Giá tăng dần');
-	addSortFilter('decrease', 'price', 'Giá giảm dần');
-	addSortFilter('ascending', 'star', 'Sao tăng dần');
-	addSortFilter('decrease', 'star', 'Sao giảm dần');
-	addSortFilter('ascending', 'rateCount', 'Đánh giá tăng dần');
-	addSortFilter('decrease', 'rateCount', 'Đánh giá giảm dần');
-	addSortFilter('ascending', 'name', 'Tên A-Z');
-	addSortFilter('decrease', 'name', 'Tên Z-A');
-
-	// Thêm filter đã chọn
-	addAllChoosedFilter();
+			addAllChoosedFilter();
+		})
+		.catch(error => console.error('Error fetching products:', error));
 };
+
 
 var soLuongSanPhamMaxTrongMotTrang = 15;
 
@@ -219,38 +218,96 @@ function clearAllProducts() {
 	document.getElementById('products').innerHTML = "";
 }
 
+console.log("Tìm .contain-khungSanPham:", document.getElementsByClassName('contain-khungSanPham'));
+
+if (!document.getElementsByClassName('contain-khungSanPham')[0]) {
+	alert("Chưa có phần tử .contain-khungSanPham trong DOM!");
+}
+
 // Thêm sản phẩm vào các khung sản phẩm
-function addKhungSanPham(tenKhung, color, filter, len, ele) {
-	// convert color to code
-	var gradient = `background-image: linear-gradient(120deg, ` + color[0] + ` 0%, ` + color[1] + ` 50%, ` + color[0] + ` 100%);`
-	var borderColor = `border-color: ` + color[0];
-	var borderA = `	border-left: 2px solid ` + color[0] + `;
-					border-right: 2px solid ` + color[0] + `;`;
+async function addKhungSanPham(tenKhung, color, filter, len, ele) {
+	const gradient = `background-image: linear-gradient(120deg, ${color[0]} 0%, ${color[1]} 50%, ${color[0]} 100%)`;
+	const borderColor = `border-color: ${color[0]}`;
+	const borderA = `border-left: 2px solid ${color[0]}; border-right: 2px solid ${color[0]};`;
 
-	// mở tag
-	var s = `<div class="khungSanPham" style="` + borderColor + `">
-				<h3 class="tenKhung" style="` + gradient + `">* ` + tenKhung + ` *</h3>
-				<div class="listSpTrongKhung flexContain">`;
-
-	// thêm các <li> (sản phẩm) vào tag
-	var spResult = phanTich_URL(filter, false);
-	if (spResult.length < len) len = spResult.length;
-
-	for (var i = 0; i < len; i++) {
-		s += addProduct(spResult[i], null, true);
-		// truyền vào 'true' để trả về chuỗi rồi gán vào s
+	function toId(str) {
+		return str
+			.normalize('NFD').replace(/[\u0300-\u036f]/g, '') // bỏ dấu
+			.replace(/\s+/g, '-')                              // thay khoảng trắng bằng gạch ngang
+			.toLowerCase();
 	}
 
-	// thêm nút xem tất cả rồi đóng tag
-	s += `	</div>
-			<a class="xemTatCa" href="index.html?` + filter.join('&') + `" style="` + borderA + `">
-				Xem tất cả ` + spResult.length + ` sản phẩm
-			</a>
-		</div> <hr>`;
+	const khungId = `list-${toId(tenKhung)}-products`;
 
-	// thêm khung vào contain-khung
-	ele.innerHTML += s;
+	let s = `
+		<div class="khungSanPham" style="${borderColor}">
+			<h3 class="tenKhung" style="${gradient}">* ${tenKhung} *</h3>
+			<div class="listSpTrongKhung flexContain" id="${khungId}">
+				<!-- Sản phẩm sẽ được thêm ở đây -->
+			</div>
+			<a class="xemTatCa" href="index.html?${filter.join('&')}" style="${borderA}">
+				Xem tất cả sản phẩm
+			</a>
+		</div><hr>`;
+
+	console.log('Đang tạo khung:', tenKhung);
+	console.log('KhungId:', khungId);
+	console.log('Phần tử cha:', ele);
+
+	if (!ele) {
+		console.warn(`Không tìm thấy phần tử cha (ele) để thêm khung cho: ${tenKhung}`);
+		return;
+	}
+
+	ele.insertAdjacentHTML('beforeend', s);
+
+	// ele.innerHTML += s;
+
+	await new Promise(resolve => setTimeout(resolve, 0));
+	const products = await fetchProductsFromAPI(filter, len);
+
+	const listDiv = document.getElementById(khungId);
+
+	if (!listDiv) {
+		console.warn(`Không tìm thấy phần tử với id: ${khungId}`);
+		return;
+	}
+
+	if (products.length === 0) {
+		listDiv.innerHTML = `<p>Không có sản phẩm nào.</p>`;
+	} else {
+		products.forEach(sp => {
+			listDiv.innerHTML += addProduct(sp, null, true);
+		});
+	}
 }
+
+// Gọi API để lấy sản phẩm từ database
+async function fetchProductsFromAPI(filterArray, limit) {
+	try {
+		// Chuyển mảng filter thành query string
+		const queryString = filterArray.join('&');
+		const response = await fetch(`api/products/filter?${queryString}`);
+
+		if (!response.ok) {
+			console.error('Lỗi khi gọi API:', response.statusText);
+			return [];
+		}
+
+		let data = await response.json();
+
+		// Nếu có limit, giới hạn số lượng sản phẩm
+		if (limit && Array.isArray(data)) {
+			return data.slice(0, limit);
+		}
+
+		return data;
+	} catch (error) {
+		console.error('Lỗi fetchProductsFromAPI:', error);
+		return [];
+	}
+}
+
 
 // Nút phân trang
 function themNutPhanTrang(soTrang, trangHienTai) {

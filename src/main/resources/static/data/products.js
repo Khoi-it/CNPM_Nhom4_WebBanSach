@@ -490,7 +490,7 @@ var list_products = [{ //Sach
         "value": "20.000"
     },
     "detail": {
-        
+
     },
     "masp": "San12"
 }, {

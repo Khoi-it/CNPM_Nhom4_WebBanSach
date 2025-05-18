@@ -13,15 +13,29 @@ function setListAdmin(l) {
 
 
 // Hàm khởi tạo, tất cả các trang đều cần
-function khoiTao() {
-    // get data từ localstorage
-    list_products = getListProducts() || list_products;
-    adminInfo = getListAdmin() || adminInfo;
+async function khoiTao() {
+    try {
+        const response = await fetch('http://localhost:8080/api/products');
+        if (!response.ok) throw new Error('Network response was not ok');
+        list_products = await response.json();
 
-    setupEventTaiKhoan();
-    capNhat_ThongTin_CurrentUser();
-    addEventCloseAlertButton();
+        setupEventTaiKhoan();
+        capNhat_ThongTin_CurrentUser();
+        addEventCloseAlertButton();
+
+        renderProducts();  // hàm bạn dùng để hiển thị sản phẩm, gọi addProduct cho từng sp
+    } catch (error) {
+        console.error('Lỗi khi tải sản phẩm:', error);
+    }
 }
+
+// hàm dùng để hiển thị sản phẩm lên giao diện
+function renderProducts() {
+    const container = document.querySelector('.contain-khungSanPham');
+    container.innerHTML = ''; // xóa cũ
+    list_products.forEach(p => addProduct(p, container));
+}
+
 
 // ========= Các hàm liên quan tới danh sách sản phẩm =========
 // Localstorage cho dssp: 'ListProducts
@@ -513,11 +527,74 @@ function addTags(nameTag, link) {
 
 // Thêm sản phẩm vào trang
 function addProduct(p, ele, returnString) {
-    promo = new Promo(p.promo.name, p.promo.value); // class Promo
-    product = new Product(p.masp, p.name, p.img, p.price, p.star, p.rateCount, promo); // Class product
-
-    return addToWeb(product, ele, returnString);
+    return addToWeb(p, ele, returnString);
 }
+
+// Render sản phẩm
+function addToWeb(p, ele, returnString) {
+    // Chuyển star sang dạng tag html
+    var rating = "";
+    if (p.rateCount > 0) {
+        for (var i = 1; i <= 5; i++) {
+            if (i <= p.star) {
+                rating += `<i class="fa fa-star"></i>`
+            } else {
+                rating += `<i class="fa fa-star-o"></i>`
+            }
+        }
+        rating += `<span>` + p.rateCount + ` đánh giá</span>`;
+    }
+
+    // Chuyển giá tiền sang dạng tag html
+    var price = `<strong>` + p.price + `&#8363;</strong>`;
+    if (p.promo && p.promo.name == "giareonline") {
+        // khuyến mãi 'Giá rẻ online' sẽ có giá thành mới
+        price = `<strong>` + p.promo.value + `&#8363;</strong>
+				<span>` + p.price + `&#8363;</span>`;
+    }
+
+    // tách theo dấu ' ' vào gắn lại bằng dấu '-', code này giúp bỏ hết khoảng trắng và thay vào bằng dấu '-'.
+    // Tạo link tới chi tiết sản phẩm, chuyển tất cả ' ' thành '-'
+    var chitietSp = 'chitietsanpham.html?' + p.name.split(' ').join('-');
+
+    // Cho mọi thứ vào tag <li>... </li>
+    var newLi =
+        `<li class="sanPham">
+		<a href="` + chitietSp + `">
+			<img src=` + p.img + ` alt="">
+			<h3>` + p.name + `</h3>
+			<div class="price">
+				` + price + `
+			</div>
+			<div class="ratingresult">
+				` + rating + `
+			</div>
+			` + renderPromo(p.promo) + `
+			<div class="tooltip">
+				<button class="themvaogio" onclick="themVaoGioHang('`+p.masp+`', '`+p.name+`'); return false;">
+					<span class="tooltiptext" style="font-size: 15px;">Thêm vào giỏ</span>
+					+
+				</button>
+			</div>
+		</a>
+	</li>`;
+
+    if(returnString) return newLi;
+
+    // Thêm tag <li> vừa tạo vào <ul> homeproduct (mặc định) , hoặc tag ele truyền vào
+    var products = ele || document.getElementById('products');
+    products.innerHTML += newLi;
+}
+
+function renderPromo(promo) {
+    if (!promo) return '';
+    if (promo.name === "giareonline") {
+        return `<div class="promo">Giá rẻ online: giảm ${promo.value}₫</div>`;
+    }
+    // Thêm các loại promo khác nếu cần
+    return '';
+}
+
 
 // Thêm topnav vào trang
 function addTopNav() {
